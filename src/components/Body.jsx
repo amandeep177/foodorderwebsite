@@ -3,6 +3,7 @@ import OnYourMind from "./onYourMind";
 import TopRestaurant from "./TopRestaurant";
 import OnlineFoodDel from "./OnlineFoodDel";
 import { Coordinates } from "../context/contextApi";
+import { useSelector } from "react-redux";
 
 const Body = () => {
   const [TopRestaurantdata, setTopRestaurantData] = useState([]);
@@ -34,6 +35,20 @@ const Body = () => {
     fetchData();
   }, [lat,lng]);
 
+  const filterVal = useSelector((state)=> state.filterSlice.filterVal)
+  
+  const filteredData = TopRestaurantdata.filter(item=>{
+    if(!filterVal) return;
+
+    switch (filterVal) {
+      case "Ratings 4.0+": return item?.info?.avgRating > 4
+      case "Offers": return 
+      case "Rs. 300-Rs.600":  return item?.info?.costForTwo.split(" ")[0].slice(1) >= "300" && item?.info?.costForTwo.split(" ")[0].slice(1) <="600"
+      case "Less than 400":  return item?.info?.costForTwo.split(" ")[0].slice(1) < "400"
+        default : return true;
+    }
+  })
+
   if(unservicedata.communication){
     return (
       <div className="flex flex-col items-center justify-center h-auto  text-center p-6 mt-44">
@@ -50,10 +65,10 @@ const Body = () => {
 
   return (
     <div className="w-full ">
-      <div className="w-[75%] mx-auto  mt-4  overflow-hidden">
+      <div className="w-[75%] mx-auto  mt-6  overflow-hidden">
         <OnYourMind data={onyourminddata}  />
         <TopRestaurant data={TopRestaurantdata} title={topResTitle} />
-        <OnlineFoodDel  data={TopRestaurantdata} title={onlineTitle} />
+        <OnlineFoodDel  data={ filterVal ? filteredData :TopRestaurantdata } title={onlineTitle} />
       </div>
     </div>
   );

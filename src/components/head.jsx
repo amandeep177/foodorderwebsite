@@ -1,43 +1,58 @@
 import React, { useContext, useEffect, useState } from "react";
 import { Outlet, Link } from "react-router-dom";
-import { Coordinates, Visibility } from "../context/contextApi";
+import { CartContext, Coordinates, Visibility } from "../context/contextApi";
+import { useDispatch, useSelector } from "react-redux";
+import { toggleSearchBar } from "../utils/toggleslice";
 function Head() {
   const navItems = [
     {
       name: "Swiggy Corporate",
       image: "fi-rr-shopping-bag flex",
+      path: "/corporate"
     },
     {
       name: "Search",
       image: "fi-rr-search",
+      path: "/search"
     },
     {
       name: "Offers",
       image: "fi-rr-badge-percent",
+      path: "/offers"
     },
     {
       name: "Help",
       image: "fi-rr-info",
+      path: "/help"
     },
     {
       name: "Signin",
       image: "fi-tr-sign-in-alt",
+      path: "/signin"
     },
 
     {
       name: "Cart",
       image: "fi-tr-cart-shopping-fast",
+      path: "/cart"
     },
   ];
 
   const [searchResult, setSearchResult] = useState([])
   const [address, setAddress] = useState("")
-  const { visible, setVisible } = useContext(Visibility)
+  // const { visible, setVisible } = useContext(Visibility)
   const { coord, setCoord } = useContext(Coordinates)
-
+  // const { cartData, setCartData } = useContext(CartContext)
+ 
+  // access data from redux sore using useSelector hook
+  const cartData = useSelector((state)=> state.cartSlice.cartItems)
+  const visible = useSelector((state)=> state.toggleSlice.searchBarToggle)
+  const dispatch = useDispatch()
+  
 
   function handleVisibility() {
-    setVisible(data => !data);
+    // setVisible(data => !data);
+    dispatch(toggleSearchBar())
 
   }
 
@@ -47,33 +62,35 @@ function Head() {
     const data = await res.json();
     setSearchResult(data.data)
   }
+
   async function fetchLatandLng(id) {
     if (id == "") return
-
     const res = await fetch(`https://www.swiggy.com/dapi/misc/address-recommend?place_id=${id}`)
     const data = await res.json();
     console.log(data);
-
     setCoord({
       lat: data.data[0].geometry.location.lat,
       lng: data.data[0].geometry.location.lng
     })
-
     setAddress(data.data[0].formatted_address)
     handleVisibility();
-
-
-
-
   }
-
-
 
   useEffect(() => {
     searchResultFun
 
-
   }, [])
+
+
+
+
+
+
+
+
+
+
+
 
   return (
     <div className="relative " >
@@ -85,28 +102,29 @@ function Head() {
 
             {/* <p className="bg-black text-white p-5 w-[30%]" ></p> */}
 
-            <div className="flex flex-col w-[50%] mr-10   " >
+            <div className="flex flex-col w-[50%] mr-10  mt-16 " >
 
               <i className="fi text-2xl fi-rr-cross-small " onClick={handleVisibility}  ></i>
               <input type="text" className="border  py-4  my-10 focus:outline-none focus:shadow-lg  " onChange={(e) => searchResultFun(e.target.value)} />
 
-              <div className="border " >
+              <div className="border  " >
                 <ul>
-                  {searchResult.map((data,index) =>{ 
-                    const isLast = (index=== searchResult.length-1)
-                    return(
-                    <div className="my-5">
-                      <div className="flex gap-3">
+                  {searchResult.map((data, index) => {
+                    const isLast = (index === searchResult.length - 1)
+                    return (
+                      <div className="my-5">
+                        <div className="flex gap-3">
 
-                    <i class="fi mt-1 fi-rr-marker"></i>
-                    <li onClick={() => fetchLatandLng(data.place_id)} >
-                     {data.structured_formatting.main_text}
-                      <p className="text-sm opacity-50" >{data.structured_formatting.secondary_text}</p>
-                     { !isLast && <p className="opacity-35">---------------------------------------</p>}
-                    </li>
+                          <i class="fi mt-1 fi-rr-marker"></i>
+                          <li onClick={() => fetchLatandLng(data.place_id)} >
+                            {data.structured_formatting.main_text}
+                            <p className="text-sm opacity-50" >{data.structured_formatting.secondary_text}</p>
+                            {!isLast && <p className="opacity-35">---------------------------------------</p>}
+                          </li>
+                        </div>
                       </div>
-                    </div>
-                  )})}
+                    )
+                  })}
                 </ul>
               </div>
             </div>
@@ -119,7 +137,7 @@ function Head() {
 
 
 
-      <div className=" shadow-xl h-20 w-full sticky flex justify-center items-center">
+      <div className=" shadow-xl  h-20 w-full sticky top-0 bg-white z-40 flex justify-center items-center">
         <div className=" w-[75%] flex justify-between">
           <div className="flex items-center gap-4  ">
             <Link to={"/"}>
@@ -139,10 +157,14 @@ function Head() {
 
           <div className="flex items-center gap-10">
             {navItems.map((data) => (
-              <div className="flex gap-3 items-center">
-                <i className={`mt-1 text-xl fi ${data.image}`} ></i>
-                <p className="text-lg font-medium text-gray-700" >{data.name}</p>
-              </div>
+              <Link to={ data.path}>
+                <div className="flex gap-3 items-center">
+                  <i className={`mt-1 text-xl fi ${data.image}`} ></i>
+                  <p className="text-lg font-medium text-gray-700" >{data.name}</p>
+                  {data.name === "Cart" && <p>{cartData.length}</p>}
+
+                </div>
+              </Link>
             ))}
           </div>
         </div>

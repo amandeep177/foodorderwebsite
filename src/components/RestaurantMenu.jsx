@@ -1,6 +1,11 @@
 import React, { useContext, useEffect, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
-import { Coordinates } from '../context/contextApi'
+import { CartContext, Coordinates } from '../context/contextApi'
+import { useDispatch, useSelector } from 'react-redux'
+import { addToCart, clearCart } from '../utils/cartSlice'
+import toast from 'react-hot-toast'
+
+
 
 let nonveg = "https://upload.wikimedia.org/wikipedia/commons/thumb/b/ba/Non_veg_symbol.svg/768px-Non_veg_symbol.svg.png"
 let veg = "https://www.shutterstock.com/image-illustration/pure-veg-icon-logo-symbol-260nw-2190482501.jpg"
@@ -18,7 +23,7 @@ const RestaurantMenu = () => {
   const [value, setValue] = useState(false);
   const [curridx, setcurrIdx] = useState(0)
 
-  const{coord:{lat,lng}} = useContext(Coordinates)
+  const { coord: { lat, lng } } = useContext(Coordinates)
   // console.log(menuData);
 
 
@@ -34,9 +39,9 @@ const RestaurantMenu = () => {
     setdiscountData(res?.data?.cards[3]?.card?.card?.gridElements?.infoWithStyle?.offers);
     let actualMenu = (res?.data?.cards[4]?.groupedCard?.cardGroupMap?.REGULAR?.cards).filter(data => data?.card?.card?.itemCards || data?.card?.card?.categories)
 
-    console.log((res?.data?.cards[4]?.groupedCard?.cardGroupMap?.REGULAR?.cards).filter(data=> data.card.card.title == "Top Picks")[0]);
+    console.log((res?.data?.cards[4]?.groupedCard?.cardGroupMap?.REGULAR?.cards).filter(data => data.card.card.title == "Top Picks")[0]);
 
-    
+
 
     setMenuData(actualMenu);
 
@@ -160,7 +165,7 @@ const RestaurantMenu = () => {
         <div>
           {
             menuData.map(({ card: { card } }) => (
-              <MenuCard card={card} />
+              <MenuCard card={card} resInfo={resInfo} />
 
             ))
           }
@@ -173,7 +178,7 @@ const RestaurantMenu = () => {
   )
 }
 
-function MenuCard({ card }) {
+function MenuCard({ card,resInfo }) {
   // console.log(card);
 
   let flag = false;
@@ -202,7 +207,7 @@ function MenuCard({ card }) {
             <i class={" text-2xl fi fi-rs-angle-small-" + (isOpen ? "up" : "down")} onClick={toggleDropDown} ></i>
           </div>
           {
-            isOpen && <DetailMenu itemCards={itemCards} />
+            isOpen && <DetailMenu itemCards={itemCards} resInfo={resInfo} />
           }
 
         </div>
@@ -217,7 +222,7 @@ function MenuCard({ card }) {
 
         <h1 className='font-bold text-xl' >{title} </h1>
         {categories.map((data) => (
-          <MenuCard card={data} />
+          <MenuCard card={data} resInfo={resInfo} />
         ))}
 
       </div>
@@ -225,60 +230,117 @@ function MenuCard({ card }) {
   }
 }
 
-function DetailMenu({ itemCards }) {
- 
+function DetailMenu({ itemCards,resInfo }) {
+
 
   return (
     <div className='my-5' >
       {
-        itemCards.map(({ card: { info } }) =>(
-              <DetailMenuCard info={info} />
-            ) )
+        itemCards.map(({ card: { info } }) => (
+          <DetailMenuCard info={info} resInfo={resInfo} />
+        ))
       }
 
     </div>
   )
 }
 
-function DetailMenuCard({info: {
-  name, defaultPrice, price, description= "hello", imageId,
-  itemAttribute: { vegClassifier },
-  ratings: { aggregatedRating: {
-    rating, ratingCountV2 } } }}){
+function DetailMenuCard({ info,resInfo }) {
+  // destructure neeche kr lia so that we can access info later
+  const {
+    name, defaultPrice, price, description = "hello", imageId,
+    itemAttribute: { vegClassifier },
+    ratings: { aggregatedRating: {
+      rating, ratingCountV2 } } } = info;
 
+
+  // const { cartData, setCartData } = useContext(CartContext)
+  const cartData = useSelector((state)=> state.cartSlice.cartItems)
+  const[isDiffRes,setIsDiffRes] = useState(false)
+
+   const getresInfoFromLocalStorage = useSelector((state)=> state.cartSlice.resInfo)
+   const dispatch = useDispatch()
+  function handleAddToCart() {
+    // console.log(resInfo);
+    
+    const isAdded = cartData.find((data) => data.id === info.id)
+    // let getresInfoFromLocalStorage = JSON.parse(localStorage.getItem("resInfo")) || []
+    if (!isAdded) {
+      if(getresInfoFromLocalStorage.name===resInfo.name || getresInfoFromLocalStorage.length===0){
+        dispatch(addToCart({info,resInfo}))
+        toast.success("food added to the cart")  
+      }else{
+      //  alert("diffrent restaurant item")
+        // toast.error("diffrent restaurant")
+        handleisDiffRes()
+      }
+    } else {
+      // alert("already added")
+      toast.error("already added")
+      
+    }
+  }
+
+  function handleisDiffRes(){
+    setIsDiffRes((prev)=> !prev)
+  }
+  function handleclearcart(){
+    
+    dispatch(clearCart())
+    handleisDiffRes()
+  }
   
+    
 
-    const [isMore, setIsMore] = useState(false)
-    let trimdes = description.substring(0, 138) + "..."
 
-    return (
-      <>
-        <div className='flex w-full justify-between items-center ' >
-          <div className='w-[70%] min-h-[200px]'>
 
-            <img className='w-6 rounded-lg' src={(vegClassifier === "VEG" ? veg : nonveg)} alt="" />
+  const [isMore, setIsMore] = useState(false)
+  let trimdes = description.substring(0, 138) + "..."
 
-            <h2 className='font-bold text-gray-700 text-lg'>{name}</h2>
-            <p className='font-bold text-gray-700 text-lg'>₹{defaultPrice / 100 || price / 100}</p>
+  return (
+    <>
+      <div className='flex w-full justify-between items-center ' >
+        <div className='w-[70%] min-h-[200px]'>
 
-            <div className='flex items-center gap-2 '> <i className={"fi text-green-600 mt-1 fi-ss-star"}></i> <span>{rating}  ({ratingCountV2})</span> </div>
+          <img className='w-6 rounded-lg' src={(vegClassifier === "VEG" ? veg : nonveg)} alt="" />
 
-            {description.length > 138 ? <div>
-              <span className=' text-gray-500 ' > {isMore? description:trimdes} </span>
-              <button className='font-bold' onClick={() => setIsMore(!isMore)}>{isMore ? "less":"more"}</button>
-            </div> : <span className='text-gray-500'> {description} </span>
-            }
+          <h2 className='font-bold text-gray-700 text-lg'>{name}</h2>
+          <p className='font-bold text-gray-700 text-lg'>₹{defaultPrice / 100 || price / 100}</p>
 
-          </div>
-          <div className='w-[20%] relative h-full'>
-            <img className=' rounded-xl ' src={"https://media-assets.swiggy.com/swiggy/image/upload/fl_lossy,f_auto,q_auto,w_300,h_300,c_fit/" + imageId} alt="" />
-            <button className='rounded-xl absolute bottom-[-15px] left-10  bg-white border font-bold text-green-500 px-6 py-2 drop-shadow  ' >Add</button>
-          </div>
+          <div className='flex items-center gap-2 '> <i className={"fi text-green-600 mt-1 fi-ss-star"}></i> <span>{rating}  ({ratingCountV2})</span> </div>
+
+          {description.length > 138 ? <div>
+            <span className=' text-gray-500 ' > {isMore ? description : trimdes} </span>
+            <button className='font-bold' onClick={() => setIsMore(!isMore)}>{isMore ? "less" : "more"}</button>
+          </div> : <span className='text-gray-500'> {description} </span>
+          }
+
         </div>
-        <hr className='my-5' />
-      </>
-    )
-  
+        <div className='w-[20%] relative h-full'>
+          <img className=' rounded-xl ' src={"https://media-assets.swiggy.com/swiggy/image/upload/fl_lossy,f_auto,q_auto,w_300,h_300,c_fit/" + imageId} alt="" />
+          <button onClick={handleAddToCart} className='rounded-xl absolute bottom-[-15px] left-10  bg-white border font-bold text-green-500 px-6 py-2 drop-shadow  '  >Add</button>
+        </div>
+      </div>
+      <hr className='my-5' />
+
+      {
+      isDiffRes && (
+      <div className='w-[580px] h-[220px] border shadow-md fixed bottom-5 left-[31%] z-50 bg-white' >
+         <div className='my-4 mx-4 '>
+
+         <h1 className='font-semibold text-xl mb-2' >Items already in cart</h1>
+         <p >Your cart contains items from other restaurant. Would you like to reset your cart
+           for adding items from this restaurant?</p>
+           <div className='flex justify-between mt-4 gap-2' >
+            <button onClick={handleisDiffRes} className='border border-green-500 h-10 text-green-500 w-1/2'>No</button>
+            <button onClick={handleclearcart} className='border  border-green-500 h-10 bg-green-500 text-white w-1/2'> Yes, start fresh</button>
+           </div>
+         </div>
+      </div>
+      )}
+    </>
+  )
+
 }
 
 function Discount({ data: { info: { header, offerLogo, couponCode } } }) {
