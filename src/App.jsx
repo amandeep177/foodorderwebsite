@@ -9,6 +9,7 @@ import { useState ,useEffect} from "react"
 import Cart from "./components/Cart"
 
 import { useDispatch, useSelector } from "react-redux"
+import SigninPage from "./components/SigninBtn"
 
 
 function App() {
@@ -17,6 +18,7 @@ function App() {
   const visible = useSelector((state)=> state.toggleSlice.searchBarToggle)
   const dispatch = useDispatch()
   const [coord, setCoord] = useState({ lat: 28.65420, lng: 77.23730 })
+  const loginVisible = useSelector((state) => state.toggleSlice.loginToggle)
   // const [cartData,setCartData]= useState([])
 
   // function getDataStorageFromLocalStorage(){
@@ -36,12 +38,13 @@ function App() {
     // < CartContext.Provider value={{ cartData, setCartData }} >
       <Coordinates.Provider value={{ coord, setCoord }} >
         {/* <Visibility.Provider value={{ visible, setVisible }} > */}
-          <div className={visible ? "max-h-screen overflow-hidden" : " "} >
+          <div className={visible || loginVisible ? "max-h-screen overflow-hidden" : " "} >
             <Routes>
               <Route path="/" element={<Head />} >
                 <Route path="/" element={<Body />} />
                 <Route path="/RestaurantMenu/:id" element={<RestaurantMenu />} />
                 <Route path="/Cart" element={<Cart/>} />
+                
                 <Route path="*" element={<h1> coming soon.......</h1> } />
               </Route>
             </Routes>

@@ -9,9 +9,9 @@ const RestaurantCard = (info) => {
   return (
    <Link to={`/restaurantMenu/${info.id}`}>
     <div className="hover:scale-95 duration-300">
-              <div className=" relative">
+              <div className="min-w-[295px] h-[182px] relative">
                 <img
-                  className=" min-w-[350px] h-44 rounded-2xl  object-cover "
+                  className=" w-full h-full rounded-2xl  object-cover "
                   src={`https://media-assets.swiggy.com/swiggy/image/upload/${info?.cloudinaryImageId}`}
                   alt=""
                 />
