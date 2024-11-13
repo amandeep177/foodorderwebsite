@@ -60,10 +60,10 @@ const Cart = () => {
     return (
       <div className="w-full">
         <div className="w-[50%] mx-auto">
-          <h1> kuch order karle bhai</h1>
+          <h1> Order something your cart is empty</h1>
           <Link to="/" className=" underline inline-block text-blue-400">
             {" "}
-            yha se order krle
+           order from here
           </Link>
         </div>
       </div>

@@ -54,6 +54,8 @@ function Head() {
       `https://www.swiggy.com/dapi/misc/place-autocomplete?input=${val}`
     );
     const data = await res.json();
+    console.log(data);
+    
     setSearchResult(data.data);
   }
 
@@ -63,7 +65,7 @@ function Head() {
       `https://www.swiggy.com/dapi/misc/address-recommend?place_id=${id}`
     );
     const data = await res.json();
-    console.log(data);
+    // console.log(data);
     setCoord({
       lat: data.data[0].geometry.location.lat,
       lng: data.data[0].geometry.location.lng,
@@ -78,7 +80,11 @@ function Head() {
 
   return (
     <>
+
+   { /*change location functanality*/}
       <div className="w-full  ">
+
+        
         <div
           className={
             "w-full bg-black/50 h-full  absolute z-10 " +
@@ -87,13 +93,13 @@ function Head() {
         >
           <div
             className={
-              "text-black bg-white p-10 z-20  absolute w-full md:w-[40%] h-full duration-500 flex justify-end " +
+              "text-black bg-white p-10 z-20  absolute w-full md:w-[40%] h-full duration-500 flex justify-end  overflow-auto" +
               (visible ? "left-0" : "-left-[100%]")
             }
           >
             {/* <p className="bg-black text-white p-5 w-[30%]" ></p> */}
 
-            <div className="flex flex-col w-[50%] mr-10  mt-16 ">
+            <div className="flex flex-col w-[74%] mr-10  mt-16 overflow-auto ">
               <i
                 className="fi text-2xl fi-rr-cross-small "
                 onClick={handleVisibility}
@@ -133,7 +139,8 @@ function Head() {
           </div>
         </div>
       </div>
-
+   
+         {/*login functanality*/}
       <div className="w-full">
         <div
           className={
@@ -143,7 +150,7 @@ function Head() {
         >
           <div
             className={
-              "text-black bg-white p-10 z-20  absolute w-full md:w-[40%] h-full duration-500 flex  " +
+              "text-black bg-white p-10 z-20  fixed w-full md:w-[40%] h-full duration-500 flex  " +
               (loginVisible ? "right-0" : "-right-[100%]")
             }
           >
@@ -173,6 +180,9 @@ function Head() {
           </div>
         </div>
       </div>
+
+
+     {/* other functionality of navbar */}
 
       <div className=" w-full  ">
         <div className=" shadow-xl  h-20 w-full sticky top-0 bg-white z-10  flex justify-center items-center">
